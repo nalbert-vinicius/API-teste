@@ -1,5 +1,11 @@
-const userRoute = require('../routes/user');
+/**
+ * Rotas da API
+ */
+
+const userRoute = require('./user');
+const tellRoute = require('./tell');
 
 module.exports = {
-    userRoute
+    userRoute,
+    tellRoute
 }
