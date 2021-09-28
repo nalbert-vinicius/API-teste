@@ -130,11 +130,11 @@ exports.login = async (req, res, next) =>{
 
 exports.validade = async (req, res, next) =>{
     try{
-        const response = await db.query('select * from clientes where nickname=$1',[req.body.nickname])
+        const response = await db.query('select * from clientes where nickname=$1',[req.body.user.nickname])
         return res.status(200).send({
             message: "Token valid!",
-            name: response.rows[0].nome,
-            sucess: true
+            sucess: true,
+            nome: response.rows[0].nome
         })
     }catch(error){
         return res.status(500).send({ error: error });

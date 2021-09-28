@@ -9,11 +9,12 @@ module.exports = (req, res, next) =>{
             nickname: decode.nickname,
             nome: req.body.nome
         }
+        req.body.user = user
     next();
     }catch(err){
         return res.status(401).send({
             msg: "Token authentication failed - JWT",
-            Ok: false
+            sucess: false
         })
     }
     
