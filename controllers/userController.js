@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 exports.insertUser = async (req, res, next) => {
     try{
 
-        const cliente = await db.query('select * from clientes where cpf = $1',[req.body.cpf])
+        const cliente = await db.query('select * from clientes where cpf = $1 or nickname = $2',[req.body.cpf, req.body.nickname])
         if(cliente.rowCount == 0 ){
             const hash = bcrypt.hashSync(req.body.senha, 10)
             await db.query('INSERT INTO clientes (nome, nickname, senha, cpf, data_nasc) VALUES ($1, $2, $3, $4, $5)',
@@ -17,10 +17,18 @@ exports.insertUser = async (req, res, next) => {
                 message: "Registro criado com sucesso!",
             })   
         }else{
-            res.status(401).send({
-                message: "This cpf already exists in the database, try again",
-                sucess: false
-            })
+            if(cliente.rows[0].cpf == req.body.cpf){
+                res.status(401).send({
+                    message: "This cpf already exists in the database, try again",
+                    sucess: false
+                })
+            }else{
+                res.status(401).send({
+                    message: "This nickname already exists in the database, try again",
+                    sucess: false
+                })
+            }
+            
         }
 
         
