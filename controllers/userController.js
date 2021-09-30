@@ -104,6 +104,9 @@ exports.updateUser = async (req, res, next) =>{
 // Deletar usuário
 exports.deleteUser = async (req, res, next) =>{
     try{
+
+        const responseTell = await db.query('delete from telefone where idcliente=$1', [req.params.id])
+
         const response = await db.query('DELETE FROM clientes WHERE idcliente = $1',[req.params.id])
         if(response.rowCount == 1){
             return res.status(200).send({
