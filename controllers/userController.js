@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 // Inserir usuário
 exports.insertUser = async (req, res, next) => {
     try{
-
         const cliente = await db.query('select * from clientes where cpf = $1 or nickname = $2',[req.body.cpf, req.body.nickname])
         if(cliente.rowCount == 0 ){
             const hash = bcrypt.hashSync(req.body.senha, 10)
@@ -27,11 +26,9 @@ exports.insertUser = async (req, res, next) => {
                     message: "This nickname already exists in the database, try again",
                     sucess: false
                 })
-            }
-            
+            }   
         }
-
-        
+  
     }catch(error){
         return res.status(500).send({
             msg: "Error registering!",
@@ -45,19 +42,55 @@ exports.insertUser = async (req, res, next) => {
 exports.updateUser = async (req, res, next) =>{
     try{
         const hash = bcrypt.hashSync(req.body.senha, 10);
-        const response = await db.query('UPDATE clientes SET nome=$1, nickname=$2, senha=$3, cpf=$4, data_nasc=$5 WHERE idcliente=$6',
-        [req.body.nome, req.body.nickname ,hash, req.body.cpf, req.body.data_nasc, req.params.id]);
+        const cliente = await db.query('select * from clientes where cpf = $1 or nickname = $2 or senha = $3',[req.body.cpf, req.body.nickname, req.body.senha])
+        
+        if(cliente.rowCount == 0){
+            const response = await db.query('UPDATE clientes SET nome=$1, nickname=$2, senha=$3, cpf=$4, data_nasc=$5 WHERE idcliente=$6',
+            [req.body.nome, req.body.nickname ,hash, req.body.cpf, req.body.data_nasc, req.params.id]);
 
-        if(response.rowCount == 1){
-            return res.status(200).send({
-                sucess: true,
-                message: "Customer updated successfully!"
-            })
+            if(response.rowCount == 1){
+                return res.status(200).send({
+                    sucess: true,
+                    message: "Customer updated successfully!"
+                })
+            }else{
+                return res.status(400).send({
+                    sucess: false,
+                    message: "Error updating!"
+                })
+            }
         }else{
-            return res.status(400).send({
-                sucess: false,
-                message: "Error updating!"
-            })
+            var response;
+            cliente.rows.forEach(async (element) => {
+                
+                if(element.idcliente == req.params.id){
+
+                    if(cliente.rowCount > 1){
+                        return res.status(401).send({
+                            message: "This cpf or nickname already exists in the database, try again",
+                            sucess: false
+                        });
+                    }
+                    
+                    if(element.senha == req.body.senha){
+                        response = await update(req.params.id, req.body);
+                    }else{
+                        response = await update(req.params.id, req.body, hash);
+                    }
+                    
+                    if(response.rowCount == 1){
+                        return res.status(200).send({
+                            sucess: true,
+                            message: "Customer updated successfully!"
+                        })
+                    }else{
+                        return res.status(400).send({
+                            sucess: false,
+                            message: "Error updating!"
+                        })
+                    }
+                }
+            });
         }
     }catch(error){
         return res.status(500).send({
@@ -109,6 +142,22 @@ exports.getUser = async (req, res, next) => {
     }
 }
 
+exports.getUserById = async (req, res, next) => {
+    try{
+        const response = await db.query('SELECT * FROM clientes WHERE idcliente = $1',[req.params.id])
+        res.status(200).send({
+            sucess: true,
+            users: response.rows
+        })
+    }catch(error){
+        return res.status(500).send({
+            message: "Error when fetching data!",
+            sucess: false,
+            error: error
+       })
+    }
+}
+
 // Login de usuários
 exports.login = async (req, res, next) =>{
     try{
@@ -147,4 +196,9 @@ exports.validade = async (req, res, next) =>{
     }catch(error){
         return res.status(500).send({ error: error });
     }
+}
+
+async function update(id, data, hash){
+    return await db.query('UPDATE clientes SET nome=$1, nickname=$2, senha=$3, cpf=$4, data_nasc=$5 WHERE idcliente=$6',
+    [data.nome, data.nickname , hash!=undefined?hash:data.senha, data.cpf, data.data_nasc, id]);
 }

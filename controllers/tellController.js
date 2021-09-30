@@ -3,10 +3,10 @@ const db = require('../database');
 exports.insertFone = async (req, res, next) =>{
     try{
         const userTell = await db.query('select * from telefone where idcliente=$1 and telefone=$2', 
-        [req.body.idcliente, req.body.telefone]);
+        [req.body.user.id_usuario, req.body.data]);
     
         if(userTell.rowCount == 0){
-            await db.query('insert into telefone (idcliente, telefone) values ($1, $2)',
+            await db.query('INSERT INTO telefone (idcliente, telefone) VALUES ($1, $2)',
             [req.body.idcliente, req.body.telefone]);
     
             res.status(201).send({
