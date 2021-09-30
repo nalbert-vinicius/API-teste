@@ -3,26 +3,34 @@ const db = require('../database');
 exports.insertFone = async (req, res, next) =>{
     try{
         const userTell = await db.query('select * from telefone where idcliente=$1 and telefone=$2', 
-        [req.body.user.id_usuario, req.body.data]);
+        [req.body.idcliente, req.body.data.telefone]);
     
+
         if(userTell.rowCount == 0){
             await db.query('INSERT INTO telefone (idcliente, telefone) VALUES ($1, $2)',
-            [req.body.idcliente, req.body.telefone]);
+                [req.body.idcliente, req.body.data.telefone]);
     
-            res.status(201).send({
-                sucess: true,
-                message: "successfully created!"
+                res.status(201).send({
+                    sucess: true,
+                    message: "successfully created!"
             })
         }else{
-            res.status(401).send({
-                sucess: false,
-                message: "Error saving!"
-            })
+            userTell.rows.forEach(async (element) => {
+                if(element.idcliente == req.body.idcliente && element.telefone !=req.body.data.telefone){
+                    await db.query('INSERT INTO telefone (idcliente, telefone) VALUES ($1, $2)',
+                    [req.body.idcliente, req.body.data.telefone]);
+        
+                    res.status(201).send({
+                        sucess: true,
+                        message: "successfully created!"
+                    })
+                }
+            });
         }
     }catch(error){
         return res.status(500).send({
-            msg: "Error registering!",
-            Ok: false,
+            message: "Error registering!",
+            sucess: false,
             error: error
        })
     }
@@ -47,7 +55,7 @@ exports.updateTell = async (req, res, next) =>{
     }catch(error){
         return res.status(500).send({
             message: "Error updating!",
-            Ok: false,
+            sucess: false,
             error: error
        })
     }
@@ -79,7 +87,7 @@ exports.deleteTell = async (req, res, next) =>{
 
 exports.getTell = async (req, res, next) =>{
     try{
-        const response = await db.query('select * from telefone where idcliente = $1',[req.body.idcliente]);
+        const response = await db.query('select * from telefone where idcliente = $1',[req.params.id]);
         if(response.rowCount > 0){
             return res.status(200).send({
                 sucess: true,

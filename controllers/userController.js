@@ -32,7 +32,7 @@ exports.insertUser = async (req, res, next) => {
     }catch(error){
         return res.status(500).send({
             msg: "Error registering!",
-            Ok: false,
+            sucess: false,
             error: error
        })
     }
@@ -95,7 +95,7 @@ exports.updateUser = async (req, res, next) =>{
     }catch(error){
         return res.status(500).send({
             message: "Error updating!",
-            Ok: false,
+            sucess: false,
             error: error
        })
     }
@@ -119,7 +119,7 @@ exports.deleteUser = async (req, res, next) =>{
     }catch(error){
         return res.status(501).send({
             msg: "Error deleting!",
-            Ok: false,
+            sucess: false,
             err: error
         })
     }
